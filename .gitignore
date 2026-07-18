@@ -1,0 +1,57 @@
+### Root ignores ###
+/.idea/
+/.turbo/
+
+### Node modules ###
+**/node_modules/
+
+### Mobile ###
+**/.expo/
+/apps/mobile/*.jks
+/apps/mobile/*.p8
+/apps/mobile/*.p12
+/apps/mobile/*.mobileprovision
+/apps/mobile/.env
+/apps/mobile/.env.local
+
+### Web ###
+/apps/web/.idea/
+/apps/web/dist/
+/apps/web/.env
+/apps/web/.env.local
+/apps/web/.env.*.local
+
+### Turborepo cache ###
+.turbo/
+
+### Common ignores ###
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+
+### VS Code ###
+.vscode/
+!.vscode/extensions.json
+
+### Claude Code ###
+/apps/mobile/.claude/
+/apps/mobile/AGENTS.md
+/apps/mobile/CLAUDE.md
+.claude/settings.local.json
+
+### IntelliJ IDEA (from .idea/.gitignore) ###
+.idea/shelf/
+.idea/workspace.xml
+.idea/httpRequests/
+.idea/dataSources/
+.idea/dataSources.local.xml
+

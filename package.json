@@ -1,0 +1,26 @@
+{
+  "name": "umt-frontend",
+  "private": true,
+  "version": "0.0.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace=@umt/web",
+    "dev:mobile": "npm run start --workspace=@umt/mobile",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck"
+  },
+  "devDependencies": {
+    "patch-package": "^8.0.1",
+    "turbo": "^2.5.4"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "expo-status-bar": "^57.0.1"
+  }
+}
