@@ -20,6 +20,10 @@ const keycloakConfig = {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    useEffect(() => {
+        console.log('Keycloak discoveryUrl:', keycloakConfig.discoveryUrl);
+    }, []);
+
     const discovery = useAutoDiscovery(keycloakConfig.discoveryUrl);
     const redirectUri = makeRedirectUri({
         scheme: 'umt-mobile',
@@ -62,20 +66,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setTokenResponse(tokenRes);
     }, []);
 
-    useEffect(() => {
-        if (response?.type === 'success' && discovery) {
-            // В реальном приложении здесь можно автоматически обменять код на токен
-            // но мы делаем это в функции login для контроля процесса
-        }
-    }, [response, discovery]);
-
-    // To keep it simple and robust for the user, I'll implement a basic login trigger
     const login = async () => {
         const result = await promptAsync();
         if (result.type === 'success') {
             const { code } = result.params;
             if (discovery) {
-               const tokenRes = await exchangeCodeAsync({
+                const tokenRes = await exchangeCodeAsync({
                     clientId: keycloakConfig.clientId,
                     code,
                     redirectUri,
@@ -87,7 +83,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const logout = async () => {
-        // Keycloak logout is usually a redirect to end_session_endpoint
         setAuth({
             isAuthenticated: false,
             isInitializing: false,
@@ -104,6 +99,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setAuth(prev => ({ ...prev, isInitializing: false }));
         }
     }, [discovery]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setAuth(prev => {
+                if (prev.isInitializing) {
+                    console.error(
+                        'Keycloak discovery timeout.',
+                        keycloakConfig.discoveryUrl
+                    );
+                    return { ...prev, isInitializing: false };
+                }
+                return prev;
+            });
+        }, 8000);
+        return () => clearTimeout(timer);
+    }, []);
 
     return (
         <AuthContext.Provider value={{ ...auth, login, logout, getToken }}>
