@@ -1,5 +1,5 @@
 import "./App.css";
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useAuth } from "./context/AuthContext";
 import { setAccessTokenProvider } from "./lib/apiClient";
 import { createUserApi } from '@umt/api';
