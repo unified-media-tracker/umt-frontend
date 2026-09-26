@@ -44,8 +44,11 @@ export const handlers = [
         const mediaCategory = url.searchParams.get('mediaCategory');
         const status = url.searchParams.get('status');
         const sort = url.searchParams.get('sort');
+        const releaseDateFrom = url.searchParams.get('releaseDateFrom');
         let items = MOVIES.filter((m) => !mediaCategory || m.mediaCategory === mediaCategory);
         if (status && status !== 'ALL') items = items.filter((m) => m.releaseDateStatus === status);
+        // same rule as the backend: undated (TBA) items can't be placed before the cutoff, so they stay
+        if (releaseDateFrom) items = items.filter((m) => !m.releaseDate || m.releaseDate >= releaseDateFrom);
         if (sort === 'DELAY_RISK') items = [...items].sort((a, b) => (b.latestDelayProbability ?? -1) - (a.latestDelayProbability ?? -1));
         else if (sort === 'POPULARITY') items = [...items].sort((a, b) => b.popularityScore - a.popularityScore);
         else items = [...items].sort((a, b) => (a.releaseDate ?? '9999-12-31').localeCompare(b.releaseDate ?? '9999-12-31'));
