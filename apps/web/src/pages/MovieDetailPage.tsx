@@ -4,7 +4,7 @@ import type {
     DelayHistoryPoint,
     EvidenceItemResponse,
     MovieDetailResponse,
-    MovieListItemResponse,
+    MovieResponse,
     PurchaseLinkResponse,
     ReleaseStatusHistoryResponse,
     RumorSnapshotResponse,
@@ -95,7 +95,7 @@ export function MovieDetailPage() {
     const [evidence, setEvidence] = useState<EvidenceItemResponse[]>([]);
     const [statusHistory, setStatusHistory] = useState<ReleaseStatusHistoryResponse[]>([]);
     const [purchaseLinks, setPurchaseLinks] = useState<PurchaseLinkResponse[]>([]);
-    const [more, setMore] = useState<MovieListItemResponse[]>([]);
+    const [more, setMore] = useState<MovieResponse[]>([]);
     const [tracked, setTracked] = useState(false);
 
     useEffect(() => {

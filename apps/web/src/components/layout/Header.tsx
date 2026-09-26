@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import type { MediaItemResponse } from '@umt/shared/dto/media';
+import type { MovieResponse } from '@umt/shared/dto/media';
 import { useAuth } from '../../context/AuthContext';
 import { mediaApi } from '../../lib/api';
 import { posterGradient, posterInitials } from '../../lib/posterPlaceholder';
@@ -16,7 +16,7 @@ export function Header() {
 
     const [searchOpen, setSearchOpen] = useState(false);
     const [query, setQuery] = useState('');
-    const [results, setResults] = useState<MediaItemResponse[]>([]);
+    const [results, setResults] = useState<MovieResponse[]>([]);
 
     const closeSearch = () => {
         setSearchOpen(false);

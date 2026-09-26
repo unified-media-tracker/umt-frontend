@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import type { MovieListItemResponse, ReleaseStatus, TrendDirection } from '@umt/shared/dto/media';
+import type { MovieResponse, ReleaseStatus, TrendDirection } from '@umt/shared/dto/media';
 import { mediaApi } from '../lib/api';
 import { posterGradient, posterInitials } from '../lib/posterPlaceholder';
 import { BookmarkIcon } from '../components/icons';
@@ -49,7 +49,7 @@ function startOfCurrentMonth() {
 }
 
 // "Not out yet" - what the spotlight, the Upcoming count and the delay signal are about.
-const isUpcoming = (m: MovieListItemResponse) => m.releaseDateStatus !== 'RELEASED' && m.releaseDateStatus !== 'CANCELED';
+const isUpcoming = (m: MovieResponse) => m.releaseDateStatus !== 'RELEASED' && m.releaseDateStatus !== 'CANCELED';
 
 function riskClass(p: number | null | undefined): RiskLevel {
     if (p == null) return '';
@@ -90,7 +90,7 @@ function daysUntil(iso: string) {
 }
 
 export function MoviesPage() {
-    const [movies, setMovies] = useState<MovieListItemResponse[] | null>(null);
+    const [movies, setMovies] = useState<MovieResponse[] | null>(null);
     const [loadError, setLoadError] = useState<string | null>(null);
     const [status, setStatus] = useState<StatusFilter>('ALL');
     const [sort, setSort] = useState<SortKey>('DATE');
@@ -124,7 +124,7 @@ export function MoviesPage() {
     const filteredAndSorted = useMemo(() => {
         if (!movies) return [];
         const byStatus = status === 'ALL' ? movies : movies.filter((m) => m.releaseDateStatus === status);
-        const sorters: Record<SortKey, (a: MovieListItemResponse, b: MovieListItemResponse) => number> = {
+        const sorters: Record<SortKey, (a: MovieResponse, b: MovieResponse) => number> = {
             DATE: (a, b) => (a.releaseDate ?? FAR_FUTURE).localeCompare(b.releaseDate ?? FAR_FUTURE),
             // a film that's already out has no delay to rank
             RISK: (a, b) => (isUpcoming(b) ? b.latestDelayProbability ?? -1 : -2) - (isUpcoming(a) ? a.latestDelayProbability ?? -1 : -2),
@@ -136,7 +136,7 @@ export function MoviesPage() {
     const groups = useMemo(() => {
         const byDate = sort === 'DATE';
         const order: string[] = [];
-        const map = new Map<string, MovieListItemResponse[]>();
+        const map = new Map<string, MovieResponse[]>();
         for (const m of filteredAndSorted) {
             const key = byDate ? (m.releaseDate ? m.releaseDate.slice(0, 7) : 'TBA') : 'ALL';
             if (!map.has(key)) {
@@ -173,7 +173,7 @@ export function MoviesPage() {
         return <div className={styles.loading}>Loading upcoming movies…</div>;
     }
 
-    const statCount = (predicate: (m: MovieListItemResponse) => boolean) => movies.filter(predicate).length;
+    const statCount = (predicate: (m: MovieResponse) => boolean) => movies.filter(predicate).length;
 
     return (
         <div className={styles.page}>
@@ -271,7 +271,7 @@ export function MoviesPage() {
     );
 }
 
-function FeatureCard({ movie }: { movie: MovieListItemResponse }) {
+function FeatureCard({ movie }: { movie: MovieResponse }) {
     const { day, mon } = dateParts(movie.releaseDate);
     const director = movie.contributors.find((c) => c.role === 'DIRECTOR');
     const risk = riskClass(movie.latestDelayProbability);
@@ -332,7 +332,7 @@ function MovieCard({
     tracked,
     onToggleTracked,
 }: {
-    movie: MovieListItemResponse;
+    movie: MovieResponse;
     tracked: boolean;
     onToggleTracked: () => void;
 }) {
