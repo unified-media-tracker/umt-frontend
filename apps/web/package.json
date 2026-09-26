@@ -16,7 +16,8 @@
     "keycloak-js": "^26.2.4",
     "packages": "^0.0.8",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "react-router-dom": "^7.1.1"
   },
   "devDependencies": {
     "@types/node": "^24.13.2",

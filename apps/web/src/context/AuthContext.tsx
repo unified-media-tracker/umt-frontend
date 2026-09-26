@@ -4,6 +4,7 @@ import type { AuthState, UserSession } from '@umt/shared/types/auth';
 
 interface AuthContextType extends AuthState {
     login: () => Promise<void>;
+    register: () => Promise<void>;
     logout: () => Promise<void>;
     getToken: () => string | null;
 }
@@ -92,6 +93,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
+    const register = async () => {
+        console.log('Registering...');
+        try {
+            await keycloakRef.current?.register({
+                redirectUri: window.location.origin + '/',
+            });
+        } catch (error) {
+            console.error('Registration failed', error);
+        }
+    };
+
     const logout = async () => {
         await keycloakRef.current?.logout();
     };
@@ -99,7 +111,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const getToken = () => keycloakRef.current?.token || null;
 
     return (
-        <AuthContext.Provider value={{ ...auth, login, logout, getToken }}>
+        <AuthContext.Provider value={{ ...auth, login, register, logout, getToken }}>
             {children}
         </AuthContext.Provider>
     );
