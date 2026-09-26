@@ -2,7 +2,7 @@ import type { AxiosInstance } from 'axios';
 import type {
     DelayHistoryPoint,
     EvidenceItemResponse,
-    MediaItemResponse,
+    MediaResponseOf,
     MediaSortOption,
     MediaCategory,
     MovieDetailResponse,
@@ -13,8 +13,8 @@ import type {
 } from '@umt/shared/dto/media';
 
 
-export interface ListMediaParams {
-    mediaCategory: MediaCategory;
+export interface ListMediaParams<C extends MediaCategory = MediaCategory> {
+    mediaCategory: C;
     status?: ReleaseStatus;
     sort?: MediaSortOption;
     // YYYY-MM-DD. Keeps items releasing on or after it, plus undated (TBA) ones - so a page can
@@ -22,22 +22,25 @@ export interface ListMediaParams {
     releaseDateFrom?: string;
 }
 
+type DetailOf<C extends MediaCategory> = C extends 'MOVIE' ? MovieDetailResponse : MediaResponseOf<C>;
+
+// Passing a category narrows the result to that category's own type; without one it is the union.
 export const createMediaApi = (httpClient: AxiosInstance) => ({
-    list: (params: ListMediaParams) =>
-        httpClient.get<MediaItemResponse[]>('/api/core/media', { params }),
+    list: <C extends MediaCategory>(params: ListMediaParams<C>) =>
+        httpClient.get<MediaResponseOf<C>[]>('/api/core/media', { params }),
 
     // mediaCategory is optional - pass it when the caller already knows the type (e.g. a page that
     // only ever deals in one type, like MovieDetailPage) to skip straight to that table server
     // side instead of it trying all five in turn. A mediaCategory that doesn't match the id's real
     // type 404s, same as an unknown id - it will not fall back to searching the other tables.
-    getById: (id: string, mediaCategory?: MediaCategory) =>
-        httpClient.get<MovieDetailResponse>(`/api/core/media/${id}`, { params: { mediaCategory } }),
+    getById: <C extends MediaCategory = MediaCategory>(id: string, mediaCategory?: C) =>
+        httpClient.get<DetailOf<C>>(`/api/core/media/${id}`, { params: { mediaCategory } }),
 
-    getSimilar: (id: string, mediaCategory?: MediaCategory) =>
-        httpClient.get<MediaItemResponse[]>(`/api/core/media/${id}/similar`, { params: { mediaCategory } }),
+    getSimilar: <C extends MediaCategory = MediaCategory>(id: string, mediaCategory?: C) =>
+        httpClient.get<MediaResponseOf<C>[]>(`/api/core/media/${id}/similar`, { params: { mediaCategory } }),
 
-    search: (query: string, mediaCategory?: MediaCategory) =>
-        httpClient.get<MediaItemResponse[]>('/api/core/media/search', {
+    search: <C extends MediaCategory = MediaCategory>(query: string, mediaCategory?: C) =>
+        httpClient.get<MediaResponseOf<C>[]>('/api/core/media/search', {
             params: { q: query, mediaCategory },
         }),
 
