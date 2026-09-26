@@ -472,6 +472,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 8px;
+    margin-top: auto; /* the status chip and the delay signal under it share the card's foot */
 }
 
 .chip {
@@ -514,7 +515,8 @@
     background: color-mix(in srgb, var(--delay) 14%, transparent);
 }
 
-.chip.tba {
+.chip.tba,
+.chip.released {
     color: var(--muted);
     background: var(--surface-2);
 }
@@ -530,7 +532,6 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
-    margin-top: auto;
 }
 
 .sigTop {

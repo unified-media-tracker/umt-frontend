@@ -17,6 +17,9 @@ export interface ListMediaParams {
     mediaCategory: MediaCategory;
     status?: ReleaseStatus;
     sort?: MediaSortOption;
+    // YYYY-MM-DD. Keeps items releasing on or after it, plus undated (TBA) ones - so a page can
+    // skip the back catalogue instead of pulling every film the database has ever seen.
+    releaseDateFrom?: string;
 }
 
 export const createMediaApi = (httpClient: AxiosInstance) => ({

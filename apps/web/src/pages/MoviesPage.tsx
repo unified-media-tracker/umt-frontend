@@ -17,6 +17,7 @@ const STATUS_FILTERS: { key: StatusFilter; label: string }[] = [
     { key: 'RUMORED', label: 'Rumored' },
     { key: 'DELAYED', label: 'Delayed' },
     { key: 'TBA', label: 'TBA' },
+    { key: 'RELEASED', label: 'Released' },
 ];
 
 const SORTS: { key: SortKey; label: string }[] = [
@@ -39,6 +40,16 @@ const TREND_ARROW: Record<TrendDirection, string> = { RISING: '↑', FALLING: '�
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const DOWS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const FAR_FUTURE = '9999-12-31';
+
+// The list window opens on the first of the current month: films that already landed this month
+// stay visible as Released next to everything still to come, and the back catalogue stays out.
+function startOfCurrentMonth() {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+}
+
+// "Not out yet" - what the spotlight, the Upcoming count and the delay signal are about.
+const isUpcoming = (m: MovieListItemResponse) => m.releaseDateStatus !== 'RELEASED' && m.releaseDateStatus !== 'CANCELED';
 
 function riskClass(p: number | null | undefined): RiskLevel {
     if (p == null) return '';
@@ -88,7 +99,7 @@ export function MoviesPage() {
     useEffect(() => {
         let cancelled = false;
         mediaApi
-            .list({ mediaCategory: 'MOVIE' })
+            .list({ mediaCategory: 'MOVIE', releaseDateFrom: startOfCurrentMonth() })
             .then((res) => !cancelled && setMovies(res.data))
             .catch(() => !cancelled && setLoadError('Could not load upcoming movies.'));
         return () => {
@@ -107,7 +118,7 @@ export function MoviesPage() {
 
     const feature = useMemo(() => {
         if (!movies) return null;
-        return [...movies].filter((m) => m.releaseDate).sort((a, b) => a.releaseDate!.localeCompare(b.releaseDate!))[0] ?? null;
+        return [...movies].filter((m) => m.releaseDate && isUpcoming(m)).sort((a, b) => a.releaseDate!.localeCompare(b.releaseDate!))[0] ?? null;
     }, [movies]);
 
     const filteredAndSorted = useMemo(() => {
@@ -115,7 +126,8 @@ export function MoviesPage() {
         const byStatus = status === 'ALL' ? movies : movies.filter((m) => m.releaseDateStatus === status);
         const sorters: Record<SortKey, (a: MovieListItemResponse, b: MovieListItemResponse) => number> = {
             DATE: (a, b) => (a.releaseDate ?? FAR_FUTURE).localeCompare(b.releaseDate ?? FAR_FUTURE),
-            RISK: (a, b) => (b.latestDelayProbability ?? -1) - (a.latestDelayProbability ?? -1),
+            // a film that's already out has no delay to rank
+            RISK: (a, b) => (isUpcoming(b) ? b.latestDelayProbability ?? -1 : -2) - (isUpcoming(a) ? a.latestDelayProbability ?? -1 : -2),
             POP: (a, b) => b.popularityScore - a.popularityScore,
         };
         return [...byStatus].sort(sorters[sort]);
@@ -168,12 +180,12 @@ export function MoviesPage() {
             <section className={`wrap ${styles.head}`}>
                 <div>
                     <div className={styles.eyebrow}>Movies · synced daily from TMDB</div>
-                    <h1>Not out yet.</h1>
-                    <p>Every film still on its way, ordered by when it should land. Each one carries an AI-read signal on how likely it is to slip.</p>
+                    <h1>Out now. Up next.</h1>
+                    <p>Every film still on its way, plus this month's releases, ordered by when they land. Each unreleased one carries an AI-read signal on how likely it is to slip.</p>
                 </div>
                 <div className={styles.stats}>
                     <div className={styles.stat}>
-                        <b>{movies.length}</b>
+                        <b>{statCount(isUpcoming)}</b>
                         <span>Upcoming</span>
                     </div>
                     <div className={styles.stat}>
@@ -246,7 +258,7 @@ export function MoviesPage() {
                 {groups.length === 0 && (
                     <div className={styles.empty}>
                         <b>Nothing matches</b>
-                        No upcoming films with that status right now. Try another filter.
+                        No films with that status right now. Try another filter.
                     </div>
                 )}
 
@@ -326,7 +338,9 @@ function MovieCard({
 }) {
     const { day, mon } = dateParts(movie.releaseDate);
     const director = movie.contributors.find((c) => c.role === 'DIRECTOR');
-    const risk = riskClass(movie.latestDelayProbability);
+    // a film that's already out has no delay left to signal
+    const released = movie.releaseDateStatus === 'RELEASED';
+    const risk = released ? '' : riskClass(movie.latestDelayProbability);
 
     return (
         <article className={styles.card}>
@@ -366,12 +380,12 @@ function MovieCard({
             <div className={styles.sig}>
                 <div className={styles.sigTop}>
                     <span>Delay signal</span>
-                    <b title={movie.latestConfidenceTrend ? `${movie.latestConfidenceTrend[0]}${movie.latestConfidenceTrend.slice(1).toLowerCase()} trend` : 'Not analysed yet'}>
-                        {signalText(movie.latestDelayProbability, movie.latestConfidenceTrend)}
+                    <b title={released ? 'Already released' : movie.latestConfidenceTrend ? `${movie.latestConfidenceTrend[0]}${movie.latestConfidenceTrend.slice(1).toLowerCase()} trend` : 'Not analysed yet'}>
+                        {released ? 'Out now' : signalText(movie.latestDelayProbability, movie.latestConfidenceTrend)}
                     </b>
                 </div>
                 <div className={`${styles.meter} ${risk ? styles[risk] : ''}`}>
-                    <div className={`${styles.fill} ${risk ? styles[risk] : ''}`} style={{ width: `${movie.latestDelayProbability ?? 0}%` }} />
+                    <div className={`${styles.fill} ${risk ? styles[risk] : ''}`} style={{ width: `${released ? 0 : movie.latestDelayProbability ?? 0}%` }} />
                 </div>
             </div>
         </article>
