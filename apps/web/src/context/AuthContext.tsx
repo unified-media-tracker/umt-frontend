@@ -37,7 +37,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const keycloak = new Keycloak(keycloakConfig);
             keycloakRef.current = keycloak;
 
-            // Обработка событий для отладки
             keycloak.onReady = (authenticated) => console.log('Keycloak Ready Event:', authenticated);
             keycloak.onAuthSuccess = () => console.log('Keycloak Auth Success Event');
             keycloak.onAuthError = (err) => console.error('Keycloak Auth Error Event:', err);
