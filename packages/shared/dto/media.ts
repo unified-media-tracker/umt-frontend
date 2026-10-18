@@ -41,13 +41,10 @@ export type TrendDirection = 'RISING' | 'FALLING' | 'STABLE';
 
 export type MediaSortOption = 'RELEASE_DATE' | 'DELAY_RISK' | 'POPULARITY';
 
-// Real and live: GET /api/core/media and GET /api/core/media/{id} both return exactly
-// this shape today, for every media type - runtimeMinutes is movie-only (null for
-// everything else) and previousReleaseDate is always null for now (release_status_history
-// only keeps a free-text note of a date change, not a structured prior value).
-export interface MediaItemResponse {
+// Every media response carries `mediaCategory`, which says which of these it is. Fields that only
+// mean something for one category sit on that category's own type.
+interface MediaResponseBase {
     id: string;
-    mediaCategory: MediaCategory;
     title: string;
     description?: string | null;
     coverImageUrl?: string | null;
@@ -62,23 +59,41 @@ export interface MediaItemResponse {
     externalSourceId: string;
     genres: GenreResponse[];
     contributors: ContributorResponse[];
-    runtimeMinutes?: number | null;
-    previousReleaseDate?: string | null;
+    previousReleaseDate?: string | null; // not populated yet
     latestDelayProbability?: number | null;
     latestConfidenceTrend?: TrendDirection | null;
 }
+
+export interface MovieResponse extends MediaResponseBase {
+    mediaCategory: 'MOVIE';
+    runtimeMinutes?: number | null;
+}
+
+export interface TvShowResponse extends MediaResponseBase {
+    mediaCategory: 'TV_SHOW';
+}
+
+export interface GameResponse extends MediaResponseBase {
+    mediaCategory: 'GAME';
+}
+
+export interface BookResponse extends MediaResponseBase {
+    mediaCategory: 'BOOK';
+}
+
+export interface MusicResponse extends MediaResponseBase {
+    mediaCategory: 'MUSIC';
+}
+
+export type MediaResponse = MovieResponse | TvShowResponse | GameResponse | BookResponse | MusicResponse;
+
+export type MediaResponseOf<C extends MediaCategory> = Extract<MediaResponse, { mediaCategory: C }>;
 
 // --- Below this line: still not backed by core-service. ---
 // Evidence/videos/cast/release-by-country/rumor-history/status-history/purchase-links
 // have no controller (some, like RumorSnapshot and ReleaseStatusHistory, mirror a real
 // entity 1:1 and just need one; others have no backing table at all) - see the
 // "not backed yet" note on each type below.
-
-/** No longer adds anything - runtimeMinutes/previousReleaseDate/latestDelayProbability/
- * latestConfidenceTrend all moved onto MediaItemResponse once GET /api/core/media shipped
- * for real. Kept as an alias only because MoviesPage/MovieDetailPage already spell it out
- * this way; write new code against MediaItemResponse directly. */
-export type MovieListItemResponse = MediaItemResponse;
 
 /** Mirrors com.umt.core.rumor.RumorSnapshot. No REST endpoint yet. */
 export interface RumorSnapshotResponse {
@@ -152,8 +167,8 @@ export interface PurchaseLinkResponse {
 }
 
 /** Not backed yet: the movie table has no tagline/backdrop/studio/country/language/budget
- * columns today. What the detail page's hero and facts panel need beyond MediaItemResponse. */
-export interface MovieDetailResponse extends MediaItemResponse {
+ * columns today. What the detail page's hero and facts panel need beyond MovieResponse. */
+export interface MovieDetailResponse extends MovieResponse {
     tagline?: string | null;
     backdropImageUrl?: string | null;
     studio?: string | null;

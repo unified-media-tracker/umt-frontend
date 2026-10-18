@@ -6,7 +6,7 @@ import type {
     GenreResponse,
     MediaVideoResponse,
     MovieDetailResponse,
-    MovieListItemResponse,
+    MovieResponse,
     PurchaseLinkResponse,
     RegionalReleaseResponse,
     ReleaseStatusHistoryResponse,
@@ -32,7 +32,7 @@ interface RawMovie {
     genreNames: string[];
     ageRating: string | null;
     releaseDate: string | null;
-    status: MovieListItemResponse['releaseDateStatus'];
+    status: MovieResponse['releaseDateStatus'];
     delayProbability: number | null;
     trend: 'RISING' | 'FALLING' | 'STABLE' | null;
     previousReleaseDate: string | null;
@@ -57,7 +57,7 @@ const RAW_MOVIES: RawMovie[] = [
     { title: 'Kestrel', directorName: null, runtimeMinutes: null, genreNames: ['Action'], ageRating: null, releaseDate: null, status: 'TBA', delayProbability: null, trend: null, previousReleaseDate: null, popularityScore: 33 },
 ];
 
-export const MOVIES: MovieListItemResponse[] = RAW_MOVIES.map((m, i) => ({
+export const MOVIES: MovieResponse[] = RAW_MOVIES.map((m, i) => ({
     id: slug(m.title),
     mediaCategory: 'MOVIE',
     title: m.title,
